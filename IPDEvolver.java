@@ -103,123 +103,104 @@ public class IPDEvolver implements Serializable {
   public void run () throws FileNotFoundException, IOException {
     while (true) {
       generation++;
-
-      message("Initializing generation " + generation + "...");
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          scores[i][j] = 0;
-        }
-      }
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          score(data[i][j], data[(i + WIDTH - 1) % WIDTH][j]);
-          scores[i][j] += scoreData[0];
-          scores[(i + WIDTH - 1) % WIDTH][j] += scoreData[1];
-          score(data[i][j], data[(i + 1) % WIDTH][j]);
-          scores[i][j] += scoreData[0];
-          scores[(i + 1) % WIDTH][j] += scoreData[1];
-          score(data[i][j], data[i][(j + HEIGHT - 1) % HEIGHT]);
-          scores[i][j] += scoreData[0];
-          scores[i][(j + HEIGHT - 1) % HEIGHT] += scoreData[1];
-          score(data[i][j], data[i][(j + 1) % HEIGHT]);
-          scores[i][j] += scoreData[0];
-          scores[i][(j + 1) % HEIGHT] += scoreData[1];
-        }
-        if (i % (WIDTH / 10) == 0)
-          statG.drawString("\t" + (100 * i / WIDTH) + "% complete.", WIDTH / 2 + 5, 40 + 200 * i / WIDTH);
-      }
-
-      message("Scoring complete. Processing...");
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          aux[i][j] = data[i][j];
-          int score = scores[i][j];
-          if (scores[(i + WIDTH - 1) % WIDTH][j] > score || (scores[(i + WIDTH - 1) % WIDTH][j] == score && Math.random() < 0.5)) {
-            score = scores[(i + WIDTH - 1) % WIDTH][j];
-            aux[i][j] = data[(i + WIDTH - 1) % WIDTH][j];
-          }
-          if (scores[(i + 1) % WIDTH][j] > score || (scores[(i + 1) % WIDTH][j] == score && Math.random() < 0.5)) {
-            score = scores[(i + 1) % WIDTH][j];
-            aux[i][j] = data[(i + 1) % WIDTH][j];
-          }
-          if (scores[i][(j + HEIGHT - 1) % HEIGHT] > score || (scores[i][(j + HEIGHT - 1) % HEIGHT] == score && Math.random() < 0.5)) {
-            score = scores[i][(j + HEIGHT - 1) % HEIGHT];
-            aux[i][j] = data[i][(j + HEIGHT - 1) % HEIGHT];
-          }
-          if (scores[i][(j + 1) % HEIGHT] > score || (scores[i][(j + 1) % HEIGHT] == score && Math.random() < 0.5)) {
-            score = scores[i][(j + 1) % HEIGHT];
-            aux[i][j] = data[i][(j + 1) % HEIGHT];
-          }
-        }
-      }
-
-      message("Processing complete. Copying...");
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          for (int k = 0; k < species.size(); k++) {
-            if (species.get(k).length == data[i][j].length) {
-              boolean match = true;
-              for (int n = 0; n < data[i][j].length; n++)
-                match = match && data[i][j][n] == species.get(k)[n];
-              if (match)
-                population.set(k, population.get(k) - 1);
-            }
-          }
-          data[i][j] = mutate(aux[i][j]);
-          boolean found = false;
-          for (int k = 0; k < species.size(); k++) {
-            if (species.get(k).length == data[i][j].length) {
-              boolean match = true;
-              for (int n = 0; n < data[i][j].length; n++)
-                match = match && data[i][j][n] == species.get(k)[n];
-              if (match) {
-                population.set(k, population.get(k) + 1);
-                found = true;
-              }
-            }
-          }
-          if (!found) {
-            species.add(data[i][j]);
-            population.add(1);
-            colors.add(new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
-          }
-        }
-      }
-
-      message("Copy complete. Drawing...");
+      initGeneration();
+      process();
+      copy();
       draw();
-      drawStats(storage);
+      save();
+    }
+  }
 
-      message("Drawing complete. Saving...");
-      ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(SAVE_FILE));
-      output.writeObject(this);
-      output.close();
+  private void initGeneration () {
+    message("Initializing generation " + generation + "...");
+    for (int i = 0; i < WIDTH; i++) {
+      for (int j = 0; j < HEIGHT; j++) {
+        scores[i][j] = 0;
+      }
+    }
+    for (int i = 0; i < WIDTH; i++) {
+      for (int j = 0; j < HEIGHT; j++) {
+        score(data[i][j], data[(i + WIDTH - 1) % WIDTH][j]);
+        scores[i][j] += scoreData[0];
+        scores[(i + WIDTH - 1) % WIDTH][j] += scoreData[1];
+        score(data[i][j], data[(i + 1) % WIDTH][j]);
+        scores[i][j] += scoreData[0];
+        scores[(i + 1) % WIDTH][j] += scoreData[1];
+        score(data[i][j], data[i][(j + HEIGHT - 1) % HEIGHT]);
+        scores[i][j] += scoreData[0];
+        scores[i][(j + HEIGHT - 1) % HEIGHT] += scoreData[1];
+        score(data[i][j], data[i][(j + 1) % HEIGHT]);
+        scores[i][j] += scoreData[0];
+        scores[i][(j + 1) % HEIGHT] += scoreData[1];
+      }
+      if (i % (WIDTH / 10) == 0)
+        statG.drawString("\t" + (100 * i / WIDTH) + "% complete.", WIDTH / 2 + 5, 40 + 200 * i / WIDTH);
+    }
+  }
 
-      if (generation % 10 == 0) {
-        message("Save complete. Copying file to IPD/ipd" + generation + ".dat...");
-
-        File dir = new File("IPD");
-        if (!dir.exists())
-          dir.mkdir();
-
-        output = new ObjectOutputStream(new FileOutputStream("IPD/ipd" + generation + ".dat"));
-        output.writeObject(this);
-        output.close();
-
-        message("File copy complete. Saving image to IPD/ipd" + generation + ".png...");
-        panel.save("IPD/ipd" + generation + ".png");
+  private void process () {
+    message("Scoring complete. Processing...");
+    for (int i = 0; i < WIDTH; i++) {
+      for (int j = 0; j < HEIGHT; j++) {
+        aux[i][j] = data[i][j];
+        int score = scores[i][j];
+        if (scores[(i + WIDTH - 1) % WIDTH][j] > score || (scores[(i + WIDTH - 1) % WIDTH][j] == score && Math.random() < 0.5)) {
+          score = scores[(i + WIDTH - 1) % WIDTH][j];
+          aux[i][j] = data[(i + WIDTH - 1) % WIDTH][j];
+        }
+        if (scores[(i + 1) % WIDTH][j] > score || (scores[(i + 1) % WIDTH][j] == score && Math.random() < 0.5)) {
+          score = scores[(i + 1) % WIDTH][j];
+          aux[i][j] = data[(i + 1) % WIDTH][j];
+        }
+        if (scores[i][(j + HEIGHT - 1) % HEIGHT] > score || (scores[i][(j + HEIGHT - 1) % HEIGHT] == score && Math.random() < 0.5)) {
+          score = scores[i][(j + HEIGHT - 1) % HEIGHT];
+          aux[i][j] = data[i][(j + HEIGHT - 1) % HEIGHT];
+        }
+        if (scores[i][(j + 1) % HEIGHT] > score || (scores[i][(j + 1) % HEIGHT] == score && Math.random() < 0.5)) {
+          score = scores[i][(j + 1) % HEIGHT];
+          aux[i][j] = data[i][(j + 1) % HEIGHT];
+        }
       }
     }
   }
 
-  private void message (String message) {
-    statG.setColor(Color.WHITE);
-    statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-    statG.setColor(Color.BLACK);
-    statG.drawString(message, WIDTH / 2 + 5, 20);
+  private void copy () {
+    message("Processing complete. Copying...");
+    for (int i = 0; i < WIDTH; i++) {
+      for (int j = 0; j < HEIGHT; j++) {
+        for (int k = 0; k < species.size(); k++) {
+          if (species.get(k).length == data[i][j].length) {
+            boolean match = true;
+            for (int n = 0; n < data[i][j].length; n++)
+              match = match && data[i][j][n] == species.get(k)[n];
+            if (match)
+              population.set(k, population.get(k) - 1);
+          }
+        }
+        data[i][j] = mutate(aux[i][j]);
+        boolean found = false;
+        for (int k = 0; k < species.size(); k++) {
+          if (species.get(k).length == data[i][j].length) {
+            boolean match = true;
+            for (int n = 0; n < data[i][j].length; n++)
+              match = match && data[i][j][n] == species.get(k)[n];
+            if (match) {
+              population.set(k, population.get(k) + 1);
+              found = true;
+            }
+          }
+        }
+        if (!found) {
+          species.add(data[i][j]);
+          population.add(1);
+          colors.add(new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
+        }
+      }
+    }
   }
 
   private void draw () {
+    message("Copy complete. Drawing...");
     for (int i = 0; i < WIDTH; i++) {
       for (int j = 0; j < HEIGHT; j++) {
         for (int k = 0; k < species.size(); k++) {
@@ -234,6 +215,36 @@ public class IPDEvolver implements Serializable {
         g.drawLine(i, j, i, j);
       }
     }
+    drawStats(storage);
+  }
+
+  private void save () throws IOException {
+    message("Drawing complete. Saving...");
+    ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(SAVE_FILE));
+    output.writeObject(this);
+    output.close();
+
+    if (generation % 10 == 0) {
+      message("Save complete. Copying file to IPD/ipd" + generation + ".dat...");
+
+      File dir = new File("IPD");
+      if (!dir.exists())
+        dir.mkdir();
+
+      output = new ObjectOutputStream(new FileOutputStream("IPD/ipd" + generation + ".dat"));
+      output.writeObject(this);
+      output.close();
+
+      message("File copy complete. Saving image to IPD/ipd" + generation + ".png...");
+      panel.save("IPD/ipd" + generation + ".png");
+    }
+  }
+
+  private void message (String message) {
+    statG.setColor(Color.WHITE);
+    statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+    statG.setColor(Color.BLACK);
+    statG.drawString(message, WIDTH / 2 + 5, 20);
   }
 
   private short[] mutate (short[] data) {
