@@ -22,28 +22,52 @@ public class IPDEvolver {
   public static final int T = 5;
   public static final int R = 1;
 
+  private PrintStream storage;
+  private DrawingPanel panel;
+  private Graphics g;
+  private DrawingPanel stats;
+  private Graphics statG;
+  private short[][][] data;
+  private short[][][] aux;
+  private int[][] scores;
+  private short[] mem1;
+  private short[] mem2;
+  private int[] scoreData;
+  private Random rand;
+  private int p;
+
+  private ArrayList<short[]> species;
+  private ArrayList<Integer> population;
+  private ArrayList<Color> colors;
+
   public static void main (String[] args) throws IOException {
+    IPDEvolver evolver = new IPDEvolver();
+    evolver.run();
+  }
+
+  public IPDEvolver () throws FileNotFoundException {
     Scanner input = null;
     try {
       input = new Scanner(new File(SAVE_FILE));
     } catch (FileNotFoundException e) {}
 
-    PrintStream storage = new PrintStream(new FileOutputStream(new File(STORAGE_FILE), true));
-    DrawingPanel panel = new DrawingPanel(WIDTH, HEIGHT);
-    Graphics g = panel.getGraphics();
-    DrawingPanel stats = new DrawingPanel(WIDTH, HEIGHT);
-    Graphics statG = stats.getGraphics();
-    short[][][] data = new short[WIDTH][HEIGHT][];
-    short[][][] aux = new short[WIDTH][HEIGHT][];
-    int[][] scores = new int[WIDTH][HEIGHT];
-    short[] mem1 = new short[MAX_MEM];
-    short[] mem2 = new short[MAX_MEM];
-    int[] scoreData = new int[2];
-    Random rand = new Random();
-    int p = 0;
+    storage = new PrintStream(new FileOutputStream(new File(STORAGE_FILE), true));
+    panel = new DrawingPanel(WIDTH, HEIGHT);
+    g = panel.getGraphics();
+    stats = new DrawingPanel(WIDTH, HEIGHT);
+    statG = stats.getGraphics();
+    data = new short[WIDTH][HEIGHT][];
+    aux = new short[WIDTH][HEIGHT][];
+    scores = new int[WIDTH][HEIGHT];
+    mem1 = new short[MAX_MEM];
+    mem2 = new short[MAX_MEM];
+    scoreData = new int[2];
+    rand = new Random();
+    p = 0;
+
     if (input != null)
       p = input.nextInt();
-    ArrayList<short[]> species = new ArrayList<short[]>();
+    species = new ArrayList<short[]>();
     if (input != null) {
       while (true) {
         short[] s = new short[input.nextInt()];
@@ -66,7 +90,7 @@ public class IPDEvolver {
       species2[1] = 1;
       species.add(species2);
     }
-    ArrayList<Integer> population = new ArrayList<Integer>();
+    population = new ArrayList<Integer>();
     if (input != null) {
       for (int i = 0; i < species.size(); i++)
         population.add(input.nextInt());
@@ -74,7 +98,7 @@ public class IPDEvolver {
       for (int i = 0; i < 4; i++)
         population.add(0);
     }
-    ArrayList<Color> colors = new ArrayList<Color>();
+    colors = new ArrayList<Color>();
     if (input != null) {
       for (int i = 0; i < species.size(); i++)
         colors.add(new Color(input.nextInt(), input.nextInt(), input.nextInt()));
@@ -106,6 +130,9 @@ public class IPDEvolver {
       draw(data, species, colors, g);
       drawStats(statG, species, population, colors, p, null);
     }
+  }
+
+  public void run () throws FileNotFoundException, IOException {
     while (true) {
       p++;
       statG.setColor(Color.WHITE);
@@ -239,7 +266,7 @@ public class IPDEvolver {
         if (!dir.exists())
           dir.mkdir();
 
-        input = new Scanner(new File(SAVE_FILE));
+        Scanner input = new Scanner(new File(SAVE_FILE));
         output = new PrintStream(new File("IPD/ipd" + p + ".txt"));
         while (input.hasNextLine())
           output.println(input.nextLine());
