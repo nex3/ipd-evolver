@@ -92,7 +92,7 @@ public class IPDEvolver implements Serializable {
     initTransient();
   }
 
-  private void initTransient() throws FileNotFoundException {
+  private void initTransient () throws FileNotFoundException {
     storage = new PrintStream(new FileOutputStream(new File(STORAGE_FILE), true));
     panel = new DrawingPanel(WIDTH, HEIGHT);
     g = panel.getGraphics();
