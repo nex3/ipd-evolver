@@ -103,10 +103,8 @@ public class IPDEvolver implements Serializable {
   public void run () throws FileNotFoundException, IOException {
     while (true) {
       generation++;
-      statG.setColor(Color.WHITE);
-      statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-      statG.setColor(Color.BLACK);
-      statG.drawString("Initializing generation " + generation + "...", WIDTH / 2 + 5, 20);
+
+      message("Initializing generation " + generation + "...");
       for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
           scores[i][j] = 0;
@@ -130,10 +128,8 @@ public class IPDEvolver implements Serializable {
         if (i % (WIDTH / 10) == 0)
           statG.drawString("\t" + (100 * i / WIDTH) + "% complete.", WIDTH / 2 + 5, 40 + 200 * i / WIDTH);
       }
-      statG.setColor(Color.WHITE);
-      statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-      statG.setColor(Color.BLACK);
-      statG.drawString("Scoring complete. Processing...", WIDTH / 2 + 5, 20);
+
+      message("Scoring complete. Processing...");
       for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
           aux[i][j] = data[i][j];
@@ -156,10 +152,8 @@ public class IPDEvolver implements Serializable {
           }
         }
       }
-      statG.setColor(Color.WHITE);
-      statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-      statG.setColor(Color.BLACK);
-      statG.drawString("Processing complete. Copying...", WIDTH / 2 + 5, 20);
+
+      message("Processing complete. Copying...");
       for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
           for (int k = 0; k < species.size(); k++) {
@@ -191,25 +185,18 @@ public class IPDEvolver implements Serializable {
           }
         }
       }
-      statG.setColor(Color.WHITE);
-      statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-      statG.setColor(Color.BLACK);
-      statG.drawString("Copy complete. Drawing...", WIDTH / 2 + 5, 20);
+
+      message("Copy complete. Drawing...");
       draw();
       drawStats(storage);
-      statG.setColor(Color.WHITE);
-      statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-      statG.setColor(Color.BLACK);
-      statG.drawString("Drawing complete. Saving...", WIDTH / 2 + 5, 20);
+
+      message("Drawing complete. Saving...");
       ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(SAVE_FILE));
       output.writeObject(this);
       output.close();
 
       if (generation % 10 == 0) {
-        statG.setColor(Color.WHITE);
-        statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-        statG.setColor(Color.BLACK);
-        statG.drawString("Save complete. Copying file to IPD/ipd" + generation + ".dat...", WIDTH / 2 + 5, 20);
+        message("Save complete. Copying file to IPD/ipd" + generation + ".dat...");
 
         File dir = new File("IPD");
         if (!dir.exists())
@@ -219,13 +206,17 @@ public class IPDEvolver implements Serializable {
         output.writeObject(this);
         output.close();
 
-        statG.setColor(Color.WHITE);
-        statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-        statG.setColor(Color.BLACK);
-        statG.drawString("File copy complete. Saving image to IPD/ipd" + generation + ".png...", WIDTH / 2 + 5, 20);
+        message("File copy complete. Saving image to IPD/ipd" + generation + ".png...");
         panel.save("IPD/ipd" + generation + ".png");
       }
     }
+  }
+
+  private void message (String message) {
+    statG.setColor(Color.WHITE);
+    statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+    statG.setColor(Color.BLACK);
+    statG.drawString(message, WIDTH / 2 + 5, 20);
   }
 
   private void draw () {
