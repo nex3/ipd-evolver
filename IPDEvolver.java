@@ -127,8 +127,8 @@ public class IPDEvolver {
       }
     }
     if (input != null) {
-      draw(data, species, colors, g);
-      drawStats(statG, species, population, colors, p, null);
+      draw();
+      drawStats(null);
     }
   }
 
@@ -146,16 +146,16 @@ public class IPDEvolver {
       }
       for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
-          score(scoreData, data[i][j], data[(i + WIDTH - 1) % WIDTH][j]);
+          score(data[i][j], data[(i + WIDTH - 1) % WIDTH][j]);
           scores[i][j] += scoreData[0];
           scores[(i + WIDTH - 1) % WIDTH][j] += scoreData[1];
-          score(scoreData, data[i][j], data[(i + 1) % WIDTH][j]);
+          score(data[i][j], data[(i + 1) % WIDTH][j]);
           scores[i][j] += scoreData[0];
           scores[(i + 1) % WIDTH][j] += scoreData[1];
-          score(scoreData, data[i][j], data[i][(j + HEIGHT - 1) % HEIGHT]);
+          score(data[i][j], data[i][(j + HEIGHT - 1) % HEIGHT]);
           scores[i][j] += scoreData[0];
           scores[i][(j + HEIGHT - 1) % HEIGHT] += scoreData[1];
-          score(scoreData, data[i][j], data[i][(j + 1) % HEIGHT]);
+          score(data[i][j], data[i][(j + 1) % HEIGHT]);
           scores[i][j] += scoreData[0];
           scores[i][(j + 1) % HEIGHT] += scoreData[1];
         }
@@ -203,7 +203,7 @@ public class IPDEvolver {
                 population.set(k, population.get(k) - 1);
             }
           }
-          data[i][j] = mutate(aux[i][j], rand);
+          data[i][j] = mutate(aux[i][j]);
           boolean found = false;
           for (int k = 0; k < species.size(); k++) {
             if (species.get(k).length == data[i][j].length) {
@@ -227,8 +227,8 @@ public class IPDEvolver {
       statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
       statG.setColor(Color.BLACK);
       statG.drawString("Copy complete. Drawing...", WIDTH / 2 + 5, 20);
-      draw(data, species, colors, g);
-      drawStats(statG, species, population, colors, p, storage);
+      draw();
+      drawStats(storage);
       statG.setColor(Color.WHITE);
       statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
       statG.setColor(Color.BLACK);
@@ -279,7 +279,7 @@ public class IPDEvolver {
     }
   }
 
-  public static void draw (short[][][] data, ArrayList<short[]> species, ArrayList<Color> colors, Graphics g) {
+  private void draw () {
     for (int i = 0; i < WIDTH; i++) {
       for (int j = 0; j < HEIGHT; j++) {
         for (int k = 0; k < species.size(); k++) {
@@ -296,7 +296,7 @@ public class IPDEvolver {
     }
   }
 
-  public static short[] mutate (short[] data, Random rand) {
+  private short[] mutate (short[] data) {
     short[] child = null;
     if (Math.random() < INCREASE_MEM && data.length < Math.pow(2, MAX_MEM))
       child = new short[data.length * 2];
@@ -314,7 +314,7 @@ public class IPDEvolver {
     return child;
   }
 
-  public static void score (int[] scoreData, short[] data1, short[] data2) {
+  private void score (short[] data1, short[] data2) {
     int memory1 = 0;
     int memory2 = 0;
     scoreData[0] = 0;
@@ -344,11 +344,11 @@ public class IPDEvolver {
     }
   }
 
-  public static void drawStats (Graphics statG, ArrayList<short[]> species, ArrayList<Integer> population, ArrayList<Color> colors, int generation, PrintStream output) {
+  private void drawStats (PrintStream output) {
     statG.setColor(Color.WHITE);
     statG.fillRect(0, 0, WIDTH, HEIGHT);
     statG.setColor(Color.BLACK);
-    statG.drawString("Generation " + generation + ":", 10, 20);
+    statG.drawString("Generation " + p + ":", 10, 20);
     int line = 0;
     int column = 0;
     ArrayList<short[]> aux = new ArrayList<short[]>();
