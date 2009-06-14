@@ -34,7 +34,7 @@ public class IPDEvolver {
   private short[] mem2;
   private int[] scoreData;
   private Random rand;
-  private int p;
+  private int generation;
 
   private ArrayList<short[]> species;
   private ArrayList<Integer> population;
@@ -63,10 +63,10 @@ public class IPDEvolver {
     mem2 = new short[MAX_MEM];
     scoreData = new int[2];
     rand = new Random();
-    p = 0;
+    generation = 0;
 
     if (input != null)
-      p = input.nextInt();
+      generation = input.nextInt();
     species = new ArrayList<short[]>();
     if (input != null) {
       while (true) {
@@ -134,11 +134,11 @@ public class IPDEvolver {
 
   public void run () throws FileNotFoundException, IOException {
     while (true) {
-      p++;
+      generation++;
       statG.setColor(Color.WHITE);
       statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
       statG.setColor(Color.BLACK);
-      statG.drawString("Initializing generation " + p + "...", WIDTH / 2 + 5, 20);
+      statG.drawString("Initializing generation " + generation + "...", WIDTH / 2 + 5, 20);
       for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
           scores[i][j] = 0;
@@ -234,7 +234,7 @@ public class IPDEvolver {
       statG.setColor(Color.BLACK);
       statG.drawString("Drawing complete. Saving...", WIDTH / 2 + 5, 20);
       PrintStream output = new PrintStream(new File(SAVE_FILE));
-      output.println(p);
+      output.println(generation);
       int n = 0;
       for (short[] s : species) {
         if (n != 0)
@@ -256,25 +256,25 @@ public class IPDEvolver {
             output.print(data[i][j][k] + " ");
         }
       }
-      if (p % 10 == 0) {
+      if (generation % 10 == 0) {
         statG.setColor(Color.WHITE);
         statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
         statG.setColor(Color.BLACK);
-        statG.drawString("Save complete. Copying file to IPD/ipd" + p + ".txt...", WIDTH / 2 + 5, 20);
+        statG.drawString("Save complete. Copying file to IPD/ipd" + generation + ".txt...", WIDTH / 2 + 5, 20);
 
         File dir = new File("IPD");
         if (!dir.exists())
           dir.mkdir();
 
         Scanner input = new Scanner(new File(SAVE_FILE));
-        output = new PrintStream(new File("IPD/ipd" + p + ".txt"));
+        output = new PrintStream(new File("IPD/ipd" + generation + ".txt"));
         while (input.hasNextLine())
           output.println(input.nextLine());
         statG.setColor(Color.WHITE);
         statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
         statG.setColor(Color.BLACK);
-        statG.drawString("File copy complete. Saving image to IPD/ipd" + p + ".png...", WIDTH / 2 + 5, 20);
-        panel.save("IPD/ipd" + p + ".png");
+        statG.drawString("File copy complete. Saving image to IPD/ipd" + generation + ".png...", WIDTH / 2 + 5, 20);
+        panel.save("IPD/ipd" + generation + ".png");
       }
     }
   }
@@ -348,7 +348,7 @@ public class IPDEvolver {
     statG.setColor(Color.WHITE);
     statG.fillRect(0, 0, WIDTH, HEIGHT);
     statG.setColor(Color.BLACK);
-    statG.drawString("Generation " + p + ":", 10, 20);
+    statG.drawString("Generation " + generation + ":", 10, 20);
     int line = 0;
     int column = 0;
     ArrayList<short[]> aux = new ArrayList<short[]>();
@@ -409,14 +409,14 @@ public class IPDEvolver {
     }
     for (short[] s : aux)
       species.add(s);
-    for (int p : auxPop)
-      population.add(p);
+    for (int generation : auxPop)
+      population.add(generation);
     for (Color c : auxCol)
       colors.add(c);
     double stdev = 0;
-    for (int p : population) {
-      if (p != 0)
-        stdev += Math.pow(p - (double) (WIDTH * HEIGHT) / n, 2);
+    for (int generation : population) {
+      if (generation != 0)
+        stdev += Math.pow(generation - (double) (WIDTH * HEIGHT) / n, 2);
     }
     stdev = Math.sqrt(stdev) / n;
     double diverse = n / stdev;
