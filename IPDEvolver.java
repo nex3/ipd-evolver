@@ -4,10 +4,10 @@ import java.awt.*;
 import java.util.*;
 import java.io.*;
 
-public class IPDEvolver {
+public class IPDEvolver implements Serializable {
   public static final int HEIGHT = 700;
   public static final int MAX_MEM = 100;
-  public static final String SAVE_FILE = "ipd.txt";
+  public static final String SAVE_FILE = "ipd.dat";
   public static final String STORAGE_FILE = "ipdstorage.txt";
   public static final int TESTS = 100;
   public static final int WIDTH = 700;
@@ -22,11 +22,11 @@ public class IPDEvolver {
   public static final int T = 5;
   public static final int R = 1;
 
-  private PrintStream storage;
-  private DrawingPanel panel;
-  private Graphics g;
-  private DrawingPanel stats;
-  private Graphics statG;
+  transient private PrintStream storage;
+  transient private DrawingPanel panel;
+  transient private Graphics g;
+  transient private DrawingPanel stats;
+  transient private Graphics statG;
   private short[][][] data;
   private short[][][] aux;
   private int[][] scores;
@@ -40,22 +40,23 @@ public class IPDEvolver {
   private ArrayList<Integer> population;
   private ArrayList<Color> colors;
 
-  public static void main (String[] args) throws IOException {
-    IPDEvolver evolver = new IPDEvolver();
+  public static void main (String[] args) throws IOException, ClassNotFoundException {
+    File save = new File(SAVE_FILE);
+    IPDEvolver evolver;
+    if (save.exists()) {
+      ObjectInputStream input = new ObjectInputStream(new FileInputStream(save));
+      evolver = (IPDEvolver)input.readObject();
+      input.close();
+    } else {
+      evolver = new IPDEvolver();
+    }
+
     evolver.run();
   }
 
   public IPDEvolver () throws FileNotFoundException {
-    Scanner input = null;
-    try {
-      input = new Scanner(new File(SAVE_FILE));
-    } catch (FileNotFoundException e) {}
+    initTransient();
 
-    storage = new PrintStream(new FileOutputStream(new File(STORAGE_FILE), true));
-    panel = new DrawingPanel(WIDTH, HEIGHT);
-    g = panel.getGraphics();
-    stats = new DrawingPanel(WIDTH, HEIGHT);
-    statG = stats.getGraphics();
     data = new short[WIDTH][HEIGHT][];
     aux = new short[WIDTH][HEIGHT][];
     scores = new int[WIDTH][HEIGHT];
@@ -65,71 +66,50 @@ public class IPDEvolver {
     rand = new Random();
     generation = 0;
 
-    if (input != null)
-      generation = input.nextInt();
     species = new ArrayList<short[]>();
-    if (input != null) {
-      while (true) {
-        short[] s = new short[input.nextInt()];
-        for (int i = 0; i < s.length; i++)
-          s[i] = (short) input.nextInt();
-        species.add(s);
-        if (input.next().equals("end"))
-          break;
-      }
-    } else {
-      species.add(new short[2]);
-      short[] species2 = new short[2];
-      species2[1] = 1;
-      species.add(species2);
-      species2 = new short[2];
-      species2[0] = 1;
-      species.add(species2);
-      species2 = new short[2];
-      species2[0] = 1;
-      species2[1] = 1;
-      species.add(species2);
-    }
+    species.add(new short[2]);
+    short[] species2 = new short[2];
+    species2[1] = 1;
+    species.add(species2);
+    species2 = new short[2];
+    species2[0] = 1;
+    species.add(species2);
+    species2 = new short[2];
+    species2[0] = 1;
+    species2[1] = 1;
+    species.add(species2);
+
     population = new ArrayList<Integer>();
-    if (input != null) {
-      for (int i = 0; i < species.size(); i++)
-        population.add(input.nextInt());
-    } else {
-      for (int i = 0; i < 4; i++)
-        population.add(0);
-    }
+    for (int i = 0; i < 4; i++)
+      population.add(0);
+
     colors = new ArrayList<Color>();
-    if (input != null) {
-      for (int i = 0; i < species.size(); i++)
-        colors.add(new Color(input.nextInt(), input.nextInt(), input.nextInt()));
-    } else {
-      colors.add(Color.WHITE);
-      colors.add(Color.RED);
-      colors.add(Color.BLUE);
-      colors.add(Color.BLACK);
-    }
-    if (input != null) {
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          data[i][j] = new short[input.nextInt()];
-          for (int k = 0; k < data[i][j].length; k++)
-            data[i][j][k] = (short) input.nextInt();
-        }
-      }
-    } else {
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          data[i][j] = new short[2];
-          data[i][j][0] = (short) rand.nextInt(2);
-          data[i][j][1] = (short) rand.nextInt(2);
-          population.set(data[i][j][0] * 2 + data[i][j][1], population.get(data[i][j][0] * 2 + data[i][j][1]) + 1);
-        }
+    colors.add(Color.WHITE);
+    colors.add(Color.RED);
+    colors.add(Color.BLUE);
+    colors.add(Color.BLACK);
+
+    for (int i = 0; i < WIDTH; i++) {
+      for (int j = 0; j < HEIGHT; j++) {
+        data[i][j] = new short[2];
+        data[i][j][0] = (short) rand.nextInt(2);
+        data[i][j][1] = (short) rand.nextInt(2);
+        population.set(data[i][j][0] * 2 + data[i][j][1], population.get(data[i][j][0] * 2 + data[i][j][1]) + 1);
       }
     }
-    if (input != null) {
-      draw();
-      drawStats(null);
-    }
+  }
+
+  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    initTransient();
+  }
+
+  private void initTransient() throws FileNotFoundException {
+    storage = new PrintStream(new FileOutputStream(new File(STORAGE_FILE), true));
+    panel = new DrawingPanel(WIDTH, HEIGHT);
+    g = panel.getGraphics();
+    stats = new DrawingPanel(WIDTH, HEIGHT);
+    statG = stats.getGraphics();
   }
 
   public void run () throws FileNotFoundException, IOException {
@@ -233,43 +213,24 @@ public class IPDEvolver {
       statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
       statG.setColor(Color.BLACK);
       statG.drawString("Drawing complete. Saving...", WIDTH / 2 + 5, 20);
-      PrintStream output = new PrintStream(new File(SAVE_FILE));
-      output.println(generation);
-      int n = 0;
-      for (short[] s : species) {
-        if (n != 0)
-          output.println(";");
-        n++;
-        output.print(s.length + " ");
-        for (int k = 0; k < s.length; k++)
-          output.print(s[k] + " ");
-      }
-      output.println("end");
-      for (int pop : population)
-        output.println(pop);
-      for (Color c : colors)
-        output.println(c.getRed() + " " + c.getGreen() + " " + c.getBlue());
-      for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-          output.print(data[i][j].length + " ");
-          for (int k = 0; k < data[i][j].length; k++)
-            output.print(data[i][j][k] + " ");
-        }
-      }
+      ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(SAVE_FILE));
+      output.writeObject(this);
+      output.close();
+
       if (generation % 10 == 0) {
         statG.setColor(Color.WHITE);
         statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
         statG.setColor(Color.BLACK);
-        statG.drawString("Save complete. Copying file to IPD/ipd" + generation + ".txt...", WIDTH / 2 + 5, 20);
+        statG.drawString("Save complete. Copying file to IPD/ipd" + generation + ".dat...", WIDTH / 2 + 5, 20);
 
         File dir = new File("IPD");
         if (!dir.exists())
           dir.mkdir();
 
-        Scanner input = new Scanner(new File(SAVE_FILE));
-        output = new PrintStream(new File("IPD/ipd" + generation + ".txt"));
-        while (input.hasNextLine())
-          output.println(input.nextLine());
+        output = new ObjectOutputStream(new FileOutputStream("IPD/ipd" + generation + ".dat"));
+        output.writeObject(this);
+        output.close();
+
         statG.setColor(Color.WHITE);
         statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
         statG.setColor(Color.BLACK);
