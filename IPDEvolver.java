@@ -32,7 +32,6 @@ public class IPDEvolver implements Serializable {
   private int[][] scores = new int[WIDTH][HEIGHT];
   private short[] mem1 = new short[MAX_MEM];
   private short[] mem2 = new short[MAX_MEM];
-  private int[] scoreData = new int[2];
   private Random rand = new Random();
   private int generation = 0;
 
@@ -120,18 +119,10 @@ public class IPDEvolver implements Serializable {
     }
     for (int i = 0; i < WIDTH; i++) {
       for (int j = 0; j < HEIGHT; j++) {
-        score(data[i][j], data[(i + WIDTH - 1) % WIDTH][j]);
-        scores[i][j] += scoreData[0];
-        scores[(i + WIDTH - 1) % WIDTH][j] += scoreData[1];
-        score(data[i][j], data[(i + 1) % WIDTH][j]);
-        scores[i][j] += scoreData[0];
-        scores[(i + 1) % WIDTH][j] += scoreData[1];
-        score(data[i][j], data[i][(j + HEIGHT - 1) % HEIGHT]);
-        scores[i][j] += scoreData[0];
-        scores[i][(j + HEIGHT - 1) % HEIGHT] += scoreData[1];
-        score(data[i][j], data[i][(j + 1) % HEIGHT]);
-        scores[i][j] += scoreData[0];
-        scores[i][(j + 1) % HEIGHT] += scoreData[1];
+        score(i, j, (i + WIDTH - 1) % WIDTH, j);
+        score(i, j, (i + 1) % WIDTH, j);
+        score(i, j, i, (j + HEIGHT - 1) % HEIGHT);
+        score(i, j, i, (j + 1) % HEIGHT);
       }
       if (i % (WIDTH / 10) == 0)
         statG.drawString("\t" + (100 * i / WIDTH) + "% complete.", WIDTH / 2 + 5, 40 + 200 * i / WIDTH);
@@ -265,11 +256,14 @@ public class IPDEvolver implements Serializable {
     return child;
   }
 
-  private void score (short[] data1, short[] data2) {
+  private void score (int i1, int j1, int i2, int j2) {
+    short[] data1 = data[i1][j1];
+    short[] data2 = data[i2][j2];
     int memory1 = 0;
     int memory2 = 0;
-    scoreData[0] = 0;
-    scoreData[1] = 0;
+    int score1 = 0;
+    int score2 = 0;
+
     for (int i = 0; i < TESTS; i++) {
       int action1 = data1[memory1];
       int action2 = data2[memory2];
@@ -278,21 +272,24 @@ public class IPDEvolver implements Serializable {
       if (Math.random() < ERROR)
         action2 = 1 - action2;
       if (action1 == 0 && action2 == 0) {
-        scoreData[0] += P;
-        scoreData[1] += P;
+        score1 += P;
+        score2 += P;
       } else if (action1 == 0 && action2 == 1) {
-        scoreData[0] += S;
-        scoreData[1] += T;
+        score1 += S;
+        score2 += T;
       } else if (action1 == 1 && action2 == 0) {
-        scoreData[0] += T;
-        scoreData[1] += S;
+        score1 += T;
+        score2 += S;
       } else {
-        scoreData[0] += R;
-        scoreData[1] += R;
+        score1 += R;
+        score2 += R;
       }
       memory1 = (memory1 * 2) % data1.length + (Math.random() > ERROR ? action2 : 1 - action2);
       memory2 = (memory2 * 2) % data2.length + (Math.random() > ERROR ? action1 : 1 - action1);
     }
+
+    scores[i1][j1] += score1;
+    scores[i2][j2] += score2;
   }
 
   private void drawStats (PrintStream output) {
