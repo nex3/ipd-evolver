@@ -22,7 +22,7 @@ public class IPDEvolver {
   public static final int T = 5;
   public static final int R = 1;
 
-  public static void main (String[] args) throws FileNotFoundException, IOException {
+  public static void main (String[] args) throws IOException {
     Scanner input = null;
     try {
       input = new Scanner(new File(SAVE_FILE));
