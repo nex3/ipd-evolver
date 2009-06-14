@@ -6,7 +6,6 @@ import java.io.*;
 
 public class IPDEvolver {
   public static final int HEIGHT = 700;
-  public static final boolean LOAD = true;
   public static final int MAX_MEM = 100;
   public static final String SAVE_FILE = "ipd.txt";
   public static final String STORAGE_FILE = "ipdstorage.txt";
@@ -24,9 +23,11 @@ public class IPDEvolver {
   public static final int R = 1;
 
   public static void main (String[] args) throws FileNotFoundException, IOException {
-    Scanner input;
-    if (LOAD)
+    Scanner input = null;
+    try {
       input = new Scanner(new File(SAVE_FILE));
+    } catch (FileNotFoundException e) {}
+
     PrintStream storage = new PrintStream(new FileOutputStream(new File(STORAGE_FILE), true));
     DrawingPanel panel = new DrawingPanel(WIDTH, HEIGHT);
     Graphics g = panel.getGraphics();
@@ -40,10 +41,10 @@ public class IPDEvolver {
     int[] scoreData = new int[2];
     Random rand = new Random();
     int p = 0;
-    if (LOAD)
+    if (input != null)
       p = input.nextInt();
     ArrayList<short[]> species = new ArrayList<short[]>();
-    if (LOAD) {
+    if (input != null) {
       while (true) {
         short[] s = new short[input.nextInt()];
         for (int i = 0; i < s.length; i++)
@@ -66,7 +67,7 @@ public class IPDEvolver {
       species.add(species2);
     }
     ArrayList<Integer> population = new ArrayList<Integer>();
-    if (LOAD) {
+    if (input != null) {
       for (int i = 0; i < species.size(); i++)
         population.add(input.nextInt());
     } else {
@@ -74,7 +75,7 @@ public class IPDEvolver {
         population.add(0);
     }
     ArrayList<Color> colors = new ArrayList<Color>();
-    if (LOAD) {
+    if (input != null) {
       for (int i = 0; i < species.size(); i++)
         colors.add(new Color(input.nextInt(), input.nextInt(), input.nextInt()));
     } else {
@@ -83,7 +84,7 @@ public class IPDEvolver {
       colors.add(Color.BLUE);
       colors.add(Color.BLACK);
     }
-    if (LOAD) {
+    if (input != null) {
       for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
           data[i][j] = new short[input.nextInt()];
@@ -101,7 +102,7 @@ public class IPDEvolver {
         }
       }
     }
-    if (LOAD) {
+    if (input != null) {
       draw(data, species, colors, g);
       drawStats(statG, species, population, colors, p, null);
     }
