@@ -234,6 +234,11 @@ public class IPDEvolver {
         statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
         statG.setColor(Color.BLACK);
         statG.drawString("Save complete. Copying file to IPD/ipd" + p + ".txt...", WIDTH / 2 + 5, 20);
+
+        File dir = new File("IPD");
+        if (!dir.exists())
+          dir.mkdir();
+
         input = new Scanner(new File(SAVE_FILE));
         output = new PrintStream(new File("IPD/ipd" + p + ".txt"));
         while (input.hasNextLine())
