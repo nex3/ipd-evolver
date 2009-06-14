@@ -1,3 +1,5 @@
+// -*- c-basic-offset: 2 -*-
+
 import java.awt.*;
 import java.util.*;
 import java.io.*;
