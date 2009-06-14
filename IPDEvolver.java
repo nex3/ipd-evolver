@@ -265,8 +265,8 @@ public class IPDEvolver implements Serializable {
     int score2 = 0;
 
     for (int i = 0; i < TESTS; i++) {
-      int action1 = data1[memory1];
-      int action2 = data2[memory2];
+      int action1 = data1[memory1 % data1.length];
+      int action2 = data2[memory2 % data2.length];
       if (Math.random() < ERROR)
         action1 = 1 - action1;
       if (Math.random() < ERROR)
