@@ -159,28 +159,17 @@ public class IPDEvolver implements Serializable {
     message("Processing complete. Copying...");
     for (int i = 0; i < WIDTH; i++) {
       for (int j = 0; j < HEIGHT; j++) {
-        for (int k = 0; k < species.size(); k++) {
-          if (species.get(k).length == data[i][j].length) {
-            boolean match = true;
-            for (int n = 0; n < data[i][j].length; n++)
-              match = match && data[i][j][n] == species.get(k)[n];
-            if (match)
-              population.set(k, population.get(k) - 1);
-          }
-        }
+        int sn = speciesNumber(data[i][j]);
+        population.set(sn, population.get(sn) - 1);
+
         data[i][j] = mutate(aux[i][j]);
         boolean found = false;
-        for (int k = 0; k < species.size(); k++) {
-          if (species.get(k).length == data[i][j].length) {
-            boolean match = true;
-            for (int n = 0; n < data[i][j].length; n++)
-              match = match && data[i][j][n] == species.get(k)[n];
-            if (match) {
-              population.set(k, population.get(k) + 1);
-              found = true;
-            }
-          }
+        sn = speciesNumber(data[i][j]);
+        if (sn != -1) {
+          population.set(sn, population.get(sn) + 1);
+          found = true;
         }
+
         if (!found) {
           species.add(data[i][j]);
           population.add(1);
@@ -194,15 +183,7 @@ public class IPDEvolver implements Serializable {
     message("Copy complete. Drawing...");
     for (int i = 0; i < WIDTH; i++) {
       for (int j = 0; j < HEIGHT; j++) {
-        for (int k = 0; k < species.size(); k++) {
-          if (species.get(k).length == data[i][j].length) {
-            boolean match = true;
-            for (int n = 0; n < data[i][j].length; n++)
-              match = match && data[i][j][n] == species.get(k)[n];
-            if (match)
-              g.setColor(colors.get(k));
-          }
-        }
+        g.setColor(colors.get(speciesNumber(data[i][j])));
         g.drawLine(i, j, i, j);
       }
     }
@@ -236,6 +217,14 @@ public class IPDEvolver implements Serializable {
     statG.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
     statG.setColor(Color.BLACK);
     statG.drawString(message, WIDTH / 2 + 5, 20);
+  }
+
+  private int speciesNumber (short[] data) {
+    for (int i = 0; i < species.size(); i++) {
+      if (Arrays.equals(species.get(i), data))
+        return i;
+    }
+    return -1;
   }
 
   private short[] mutate (short[] data) {
