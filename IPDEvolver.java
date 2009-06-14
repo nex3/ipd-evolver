@@ -27,18 +27,18 @@ public class IPDEvolver implements Serializable {
   transient private Graphics g;
   transient private DrawingPanel stats;
   transient private Graphics statG;
-  private short[][][] data;
-  private short[][][] aux;
-  private int[][] scores;
-  private short[] mem1;
-  private short[] mem2;
-  private int[] scoreData;
-  private Random rand;
-  private int generation;
+  private short[][][] data = new short[WIDTH][HEIGHT][];
+  private short[][][] aux = new short[WIDTH][HEIGHT][];
+  private int[][] scores = new int[WIDTH][HEIGHT];
+  private short[] mem1 = new short[MAX_MEM];
+  private short[] mem2 = new short[MAX_MEM];
+  private int[] scoreData = new int[2];
+  private Random rand = new Random();
+  private int generation = 0;
 
-  private ArrayList<short[]> species;
-  private ArrayList<Integer> population;
-  private ArrayList<Color> colors;
+  private ArrayList<short[]> species = new ArrayList<short[]>();;
+  private ArrayList<Integer> population = new ArrayList<Integer>();;
+  private ArrayList<Color> colors = new ArrayList<Color>();;
 
   public static void main (String[] args) throws IOException, ClassNotFoundException {
     File save = new File(SAVE_FILE);
@@ -57,16 +57,6 @@ public class IPDEvolver implements Serializable {
   public IPDEvolver () throws FileNotFoundException {
     initTransient();
 
-    data = new short[WIDTH][HEIGHT][];
-    aux = new short[WIDTH][HEIGHT][];
-    scores = new int[WIDTH][HEIGHT];
-    mem1 = new short[MAX_MEM];
-    mem2 = new short[MAX_MEM];
-    scoreData = new int[2];
-    rand = new Random();
-    generation = 0;
-
-    species = new ArrayList<short[]>();
     species.add(new short[2]);
     short[] species2 = new short[2];
     species2[1] = 1;
@@ -79,11 +69,9 @@ public class IPDEvolver implements Serializable {
     species2[1] = 1;
     species.add(species2);
 
-    population = new ArrayList<Integer>();
     for (int i = 0; i < 4; i++)
       population.add(0);
 
-    colors = new ArrayList<Color>();
     colors.add(Color.WHITE);
     colors.add(Color.RED);
     colors.add(Color.BLUE);
